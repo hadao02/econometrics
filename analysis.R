@@ -1,6 +1,7 @@
 library(stats)
 library(dplyr)
 library(ggplot2)
+library(tidyr)
 
 # read data
 df <- read.csv("D:/Personal project/IMDB/econometrics/economic_freedom_index2019_data.csv")
@@ -42,30 +43,58 @@ print(str(df))
 # result
 
 # rename
-colnames(df) <- c("CountryID", "Country Name", "WEBNAME", "Region", "World Rank", "Region Rank", "2019 Score", "Property Rights", "Judicial Effectiveness", "Government Integrity", "Tax Burden", "Gov't Spending", "Fiscal Health", "Business Freedom", "Labor Freedom", "Monetary Freedom", "Trade Freedom", "Investment Freedom", "Financial Freedom", "Tariff Rate (%)", "Income Tax Rate (%)", "Corporate Tax Rate (%)", "Tax Burden % of GDP", "Gov't Expenditure % of GDP", "Country", "Population (Millions)", "GDP (Billions, PPP)", "GDP Growth Rate (%)", "5 Year GDP Growth Rate (%)", "GDP per Capita (PPP)", "Unemployment (%)", "Inflation (%)", "FDI Inflow (Millions)", "Public Debt (% of GDP)")
+colnames(df) <- c("CountryID", "CountryName", "WEBNAME", "Region", "WorldRank", "RegionRank", "2019Score", 
+                  "PropertyRights", "JudicialEffectiveness", "GovernmentIntegrity", "TaxBurden", "GovSpending", 
+                  "FiscalHealth", "BusinessFreedom", "LaborFreedom", "MonetaryFreedom", "TradeFreedom", 
+                  "InvestmentFreedom", "FinancialFreedom", "TariffRate", "IncomeTaxRate", "CorporateTaxRate", 
+                  "TaxBurdenRateOfGDP", "GovExpenditureRateOfGDP", "Country", "PopulationMillions", 
+                  "GDPBillionsPPP", "GDPGrowthRate", "5YearGDPGrowthRate", "GDPperCapitaPPP", "UnemploymentRate", 
+                  "InflationRate", "FDIInflowMillions", "PublicDebtRateOfGDP")
 
 
 # set up ranks component
 
-RANKS <- c('Property Rights', 'Judicial Effectiveness', 'Government Integrity', 'Tax Burden', 
-           'Gov Spending', 'Fiscal Health', 'Business Freedom', 
-           'Labor Freedom', 'Monetary Freedom', 'Trade Freedom', 
-           'Investment Freedom', 'Financial Freedom')
+RANKS <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
+           'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
+           'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
+           'InvestmentFreedom', 'FinancialFreedom')
 
 # earlier list plus 2019 score column
-RANKS_PLUS_TOTAL <- c('2019 Score', RANKS)
+RANKS_PLUS_TOTAL <- c('2019Score', RANKS)
 
 # columns with other statistics for each country calculated as a percentage
-PERCENTAGE_STATS <- c('Tariff Rate (%)', 'Income Tax Rate (%)', 'Corporate Tax Rate (%)', 
-                      'Tax Burden % of GDP', 'Gov Expenditure % of GDP', 'GDP Growth Rate (%)', '5 Year GDP Growth Rate (%)',
-                      'Unemployment (%)', 'Inflation (%)', 'Public Debt (% of GDP)', 'GDP per Capita (PPP)')
+PERCENTAGE_STATS <- c('TariffRate', 'IncomeTaxRate', 'CorporateTaxRate', 
+                      'TaxBurdenRateOfGDP', 'GovExpenditureRateOfGDP', 'GDPGrowthRate', 
+                      '5YearGDPGrowthRate', 'UnemploymentRate', 'InflationRate', 'PublicDebtRateOfGDP', 'GDPperCapitaPPP')
 
 df <- drop_na(df)
 print(str(df))
 
+classifier <- function(item) {
+  if (item > 80) {
+    return("darkgreen")
+  } else if (item > 70) {
+    return('limegreen')
+  } else if (item > 60) {
+    return("yellow")
+  } else if (item > 50) {
+    return('orange')
+  } else {
+    return('red')
+  }
+}
+
+# function for making boxplots
+boxPlots <- function(df) {
+  boxplot(df, col = sapply(apply(df, 2, median), classifier), main = "World Scores by Category", xlab = "Categories", ylab = "Score", las = 2)
+}
+
+# calls function
+boxPlots(df[RANKS_PLUS_TOTAL])
+
 ### scater plot
 
-df <- df[order(df$"2019 Score"),]
+df <- df[order(df$"2019Score"),]
 
 scatterPlot <- function(X, Y, predictions=NULL) {
   p <- ggplot() +
@@ -81,15 +110,15 @@ scatterPlot <- function(X, Y, predictions=NULL) {
   print(p)
 }
 
-X_total <- df[["2019 Score"]]
-Y <- df[["GDP per Capita (PPP)"]]
+X_total <- df[["2019Score"]]
+Y <- df[["GDPperCapitaPPP"]]
 
 scatterPlot(X_total, Y)
 
 ### squared
-Y <- sqrt(df[["GDP per Capita (PPP)"]])
+Y <- sqrt(df[["GDPperCapitaPPP"]])
 names(Y) <- "sqrt of GDP per Capita"
-X_total <- df[["2019 Score"]]
+X_total <- df[["2019Score"]]
 
 scatterPlot(X_total, Y)
 
@@ -100,13 +129,21 @@ summary(model)
 
 ### correlation
 
-X_factors <- df['Property Rights', 'Judicial Effectiveness', 'Government Integrity', 'Tax Burden', 
-                'Gov Spending', 'Fiscal Health', 'Business Freedom', 
-                'Labor Freedom', 'Monetary Freedom', 'Trade Freedom', 
-                'Investment Freedom', 'Financial Freedom']
-Y <- df[["GDP per Capita (PPP)"]]
-cor(X_factors, Y)
-X_const <- cbind(1, X_factors)
+Y <- sqrt(df[["GDPperCapitaPPP"]])
+names(Y) <- "sqrt of GDP per Capita"
+X <- df[RANKS]
+cor(Y, X)
 
-model <- lm(Y ~ X_const)
-summary(model)
+library(corrplot)
+M <- cor(Y, X)
+corrplot(M)
+
+
+# add a column of ones to represent the intercept term
+df$Intercept <- 1
+
+# specify the model formula
+formula <- as.formula(paste("Y ~", paste(c("Intercept", PERCENTAGE_STATS), collapse = " + "), "- 1"))
+
+# fit the linear model
+model <- lm(formula, data = df)
