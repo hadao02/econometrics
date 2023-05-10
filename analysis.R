@@ -143,7 +143,9 @@ corrplot(M)
 df$Intercept <- 1
 
 # specify the model formula
-formula <- as.formula(paste("Y ~", paste(c("Intercept", PERCENTAGE_STATS), collapse = " + "), "- 1"))
+formula <- as.formula(paste("Y ~", paste(c("Intercept", RANKS), collapse = " + "), "- 1"))
 
 # fit the linear model
 model <- lm(formula, data = df)
+summary(model)
+S
