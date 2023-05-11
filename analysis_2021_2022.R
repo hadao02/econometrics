@@ -5,15 +5,12 @@ library(tidyr)
 library(gdata)
 library(readxl)
 library(purrr)
-
 library(tidyverse)
-
-
 library(estimatr)
 library(texreg)
 library(sandwich)
 library(haven)
-library(magrittr) # needs to be run every time you start R and want to use %>%
+library(magrittr)
 ######################## read data ######################## 
 
 df_2021 <- read_excel("D:/Personal project/IMDB/econometrics/index2021_data.xls")
