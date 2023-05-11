@@ -7,12 +7,7 @@ library(readxl)
 library(purrr)
 
 library(tidyverse)
-# install.packages('tidyverse')
-# install.packages('estimatr')
-# install.packages('texreg')
-# install.packages('sandwich')
-# install.packages('haven')
-# install.packages('magrittr')
+
 
 library(estimatr)
 library(texreg)
@@ -92,10 +87,7 @@ RANKS_AND_RATE <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegr
                     'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
                     'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
                     'InvestmentFreedom', 'FinancialFreedom', 'TariffRate', 
-                    'IncomeTaxRate', 'CorporateTaxRate', 
-                    'TaxBurdenRateOfGDP', 'GovExpenditureRateOfGDP', 'GDPGrowthRate', 
-                    '5YearGDPGrowthRate', 'UnemploymentRate', 'InflationRate', 
-                    'PublicDebtRateOfGDP', 'GDPperCapitaPPP')
+                    'IncomeTaxRate', 'CorporateTaxRate',  'UnemploymentRate', 'InflationRate')
 
 
 ### drop na
@@ -151,10 +143,7 @@ Y <- merged_df[["GDPperCapitaPPP"]]
 scatterPlot(X_total, Y)
 
 ######################## correlation matrix ######################## 
-
-# install.packages('GGally')
 library(GGally)
-# install.packages("reshape2")
 library(reshape2)
 
 correlationMatrix <- function(merged_df) {
@@ -184,7 +173,7 @@ names(Y) <- "sqrt of GDP per Capita"
 merged_df$Intercept <- 1
 
 # specify the model formula
-formula <- as.formula(paste("Y ~", paste(c("Intercept", RANKS), collapse = " + "), "- 1"))
+formula <- as.formula(paste("Y ~", paste(c("Intercept", RANKS_AND_RATE), collapse = " + "), "- 1"))
 
 # fit the linear model
 model <- lm_robust(formula, data = merged_df)
@@ -196,6 +185,9 @@ tbl <- table(merged_df$Region)
 
 # Perform the chi-squared test
 chisq.test(tbl)
+
+## X-squared = 39.959, df = 4, p-value = 4.414e-08
+## the distribution of observations across different regions in the merged_df data frame is not random and that there are significant differences in the frequencies of observations between different regions
 
 ######################## different region ######################## 
 
@@ -212,14 +204,38 @@ summary(model)
 ## GovSpending as an endogenous regressor and PopulationMillions as an instrumental variable for GovSpending
 library(AER)
 
-formula <- as.formula("Y ~ GovSpending + PropertyRights + JudicialEffectiveness 
-                      + GovernmentIntegrity + TaxBurden + FiscalHealth + BusinessFreedom 
+formula <- as.formula("Y ~ GovSpending + PopulationMillions + PropertyRights + JudicialEffectiveness + TaxBurden + FiscalHealth + BusinessFreedom 
                       + LaborFreedom + MonetaryFreedom + TradeFreedom + InvestmentFreedom 
-                      + FinancialFreedom | PopulationMillions + PropertyRights 
-                      + JudicialEffectiveness + GovernmentIntegrity + TaxBurden 
+                      + FinancialFreedom | GovernmentIntegrity + PopulationMillions + PropertyRights 
+                      + JudicialEffectiveness + TaxBurden 
                       + FiscalHealth + BusinessFreedom + LaborFreedom + MonetaryFreedom 
                       + TradeFreedom + InvestmentFreedom + FinancialFreedom")
 # Fit the 2SLS model
 ivreg_fit <- ivreg(formula, data = merged_df)
 
 summary(ivreg_fit)
+
+
+######################## ANOVA ######################## 
+
+for (response_variable in RANKS) {
+  # Specify the model formula
+  model_formula <- as.formula(paste(response_variable, "~ Region"))
+  
+  # Fit the model
+  model <- aov(model_formula, data = merged_df)
+  
+  # View the ANOVA table
+  cat("\nANOVA for", response_variable, "\n")
+  print(summary(model))
+  
+}
+
+######################## Krustal-Wallis ######################## 
+
+kruskal.test(Y ~ Region, data = merged_df)
+
+# data:  Y by Region
+# Kruskal-Wallis chi-squared = 184.15, df = 4, p-value < 2.2e-16
+# The p-value is less than 2.2e-16, which is very close to zero. This indicates that there is a statistically significant difference in the medians of Y (square root of GDP per capita) between the different regions.
+
