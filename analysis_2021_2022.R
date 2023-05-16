@@ -28,6 +28,7 @@ colnames(df_2021) <- c("CountryID", "CountryName", "Region", "WorldRank", "Regio
                   "GDPBillionsPPP", "GDPGrowthRate", "5YearGDPGrowthRate", "GDPperCapitaPPP", "UnemploymentRate", 
                   "InflationRate", "FDIInflowMillions", "PublicDebtRateOfGDP")
 
+
 colnames(df_2022) <- c("CountryID", "CountryName", "Region", "WorldRank", "RegionRank", "Score", 
                        "PropertyRights", "JudicialEffectiveness", "GovernmentIntegrity", "TaxBurden", "GovSpending", 
                        "FiscalHealth", "BusinessFreedom", "LaborFreedom", "MonetaryFreedom", "TradeFreedom", 
@@ -166,8 +167,8 @@ scatterPlot <- function(X, Y, predictions=NULL) {
   print(p)
 }
 
-X_total <- merged_df[["Score"]]
-Y <- merged_df[["GDPperCapitaPPP"]]
+X_total <- merged_df[["TaxBurden"]]
+Y <- merged_df[["GDPGrowthRate"]]
 
 scatterPlot(X_total, Y)
 
@@ -191,32 +192,87 @@ correlationMatrix <- function(merged_df) {
 }
 
 # Call the function with the desired columns
-correlationMatrix(merged_df[, c(RANKS_AND_RATE, "Score")])
+correlationMatrix(merged_df[, c(RANKS_AND_RATE_original, "GDPGrowthRate")])
 
 
 ######################## linear regression ######################## 
 
-Y <- sqrt(merged_df[["GDPperCapitaPPP"]])
-names(Y) <- "sqrt of GDP per Capita"
+Y <- sqrt(merged_df[["GDPGrowthRate"]])
+# Y <- merged_df[["GDPGrowthRate"]]
+names(Y) <- "sqrt of GDPGrowthRate"
 
 merged_df$Intercept <- 1
 
 # specify the model formula
 formula <- as.formula(paste("Y ~", paste(c("Intercept", RANKS_AND_RATE_original), collapse = " + "), "- 1"))
 
-# fit the linear model
-# Fit the full model
+# fit the full model
 full_model <- lm(formula, data = merged_df)
 
 # Perform stepwise selection
 step_model <- step(full_model, direction = "both")
 summary(step_model)
 
+######################## spurious regression w/ time series ######################## 
+
+install.packages('zoo')
+library(zoo)
+
+
+merged_df <- merged_df[complete.cases(merged_df), ]
+Y <- sqrt(merged_df[["GDPGrowthRate"]])
+# Y <- merged_df[["GDPGrowthRate"]]
+names(Y) <- "sqrt of GDPGrowthRate"
+ts <- ts(Y, start = c(2021, 1), end = c(2022, 368), frequency = 1)
+# ts <- ts(cbind(Y, InflationRate, UnemploymentRate), start = c(2021, 1), end = c(2022, 368), frequency = 1)
+
+
+merged_df$InflationRate[is.na(merged_df$InflationRate)] <- mean(merged_df$InflationRate, na.rm = TRUE)
+
+# Impute missing values using linear interpolation
+merged_df$InflationRate <- na.approx(merged_df$InflationRate)
+
+model <- lm(ts ~ InflationRate + UnemploymentRate, data = merged_df)
+summary(model)
+
+
+merged_df <- merged_df[1:length(ts), ]
+
+length(merged_df$InflationRate)
+length(merged_df$UnemploymentRate)
+length(ts)
+
+
+
+sum(is.na(merged_df$InflationRate))
+sum(is.na(merged_df$UnemploymentRate))
+sum(is.na(ts))
+
+
+time_series <- (Y, RANKS_AND_RATE_original)
+
+for (var in time_series) {
+  
+  # Create a time series object with the variable
+  ts <- ts(df[[var]], start = c(2021, 1), end = c(2022, 368), frequency = 1)
+  assign(var, ts) }
+
+
+# model <- lm(ts ~ PopulationMillions + InflationRate + UnemploymentRate, data = df)
+formula <- as.formula(paste("ts ~", paste(c("Intercept", RANKS_AND_RATE_original), collapse = " + "), "- 1"))
+
+full_model <- lm(formula, data = merged_df)
+summary(full_model)
+
+# Perform stepwise selection
+step_model <- step(full_model, direction = "both")
+summary(step_model)
 
 ######################## linear regression w/ cross validation ######################## 
 
-Y <- sqrt(merged_df[["GDPperCapitaPPP"]])
-names(Y) <- "sqrt of GDP per Capita"
+Y <- sqrt(merged_df[["GDPGrowthRate"]])
+# Y <- merged_df[["GDPGrowthRate"]]
+names(Y) <- "sqrt of GDPGrowthRate"
 
 merged_df$Intercept <- 1
 
@@ -259,16 +315,14 @@ for (i in 1:k) {
 
 # Compute the average cross-validated error
 mean(cv_errors)
+
+
 ######################## based on region ########################
 
-FOR_REGION <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
-                'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
-                'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
-                'InvestmentFreedom', 'FinancialFreedom', 'IncomeTaxRate', 'CorporateTaxRate',
-                'TaxBurdenRateOfGDP', 'GDPGrowthRate', 'UnemploymentRate', 'InflationRate')
 
-Y <- sqrt(merged_df[["GDPperCapitaPPP"]])
-names(Y) <- "sqrt of GDP per Capita"
+Y <- sqrt(merged_df[["GDPGrowthRate"]])
+Y <- merged_df[["GDPGrowthRate"]]
+names(Y) <- "sqrt of GDPGrowthRate"
 
 merged_df$Y <- Y
 
@@ -349,7 +403,7 @@ sargan(ivreg_fit)
 
 ######################## ANOVA ######################## 
 
-for (response_variable in RANKS) {
+for (response_variable in PERCENTAGE_STATS) {
   # Specify the model formula
   model_formula <- as.formula(paste(response_variable, "~ Region"))
   
