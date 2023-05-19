@@ -115,11 +115,6 @@ scatterPlot(X_total, Y)
 library(GGally)
 library(reshape2)
 
-correlation <- cor(df$GDPGrowthRate, select(df, -c(GDPGrowthRate, year, CountryName, Region, CountryID, X5YearGDPGrowthRate )))
-
-print(correlation)
-
-
 RANKS_AND_RATE_original <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
                              'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
                              'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 

@@ -13,13 +13,53 @@ library(haven)
 library(magrittr)
 
 ######################## read data ######################## 
+df_2017<-read_excel("D:/Personal project/IMDB/econometrics/index2017_data.xls")
+print(str(df_2017))
+
+df_2018<-read_excel("D:/Personal project/IMDB/econometrics/index2018_data.xls")
+print(str(df_2018))
+
+df_2019<-read_excel("D:/Personal project/IMDB/econometrics/index2019_data.xls")
+print(str(df_2019))
+
+df_2020<-read_excel("D:/Personal project/IMDB/econometrics/index2020_data.xls")
+print(str(df_2020))
 
 df_2021 <- read_excel("D:/Personal project/IMDB/econometrics/index2021_data.xls")
 df_2021 <- subset(df_2021, select = -c(WEBNAME))
 print(str(df_2021))
+
 df_2022 <- read_excel("D:/Personal project/IMDB/econometrics/index2022_data.xls")
 print(str(df_2022))
 
+colnames(df_2017) <- c("CountryID", "CountryName", "Region", "WorldRank", "RegionRank", "Score", 
+                       "PropertyRights", "JudicialEffectiveness", "GovernmentIntegrity", "TaxBurden", "GovSpending", 
+                       "FiscalHealth", "BusinessFreedom", "LaborFreedom", "MonetaryFreedom", "TradeFreedom", 
+                       "InvestmentFreedom", "FinancialFreedom", "TariffRate", "IncomeTaxRate", "CorporateTaxRate", 
+                       "TaxBurdenRateOfGDP", "GovExpenditureRateOfGDP", "PopulationMillions", 
+                       "GDPBillionsPPP", "GDPGrowthRate", "5YearGDPGrowthRate", "GDPperCapitaPPP", "UnemploymentRate", 
+                       "InflationRate", "FDIInflowMillions", "PublicDebtRateOfGDP")
+colnames(df_2018) <- c("CountryID", "CountryName", "Region", "WorldRank", "RegionRank", "Score", 
+                       "PropertyRights", "JudicialEffectiveness", "GovernmentIntegrity", "TaxBurden", "GovSpending", 
+                       "FiscalHealth", "BusinessFreedom", "LaborFreedom", "MonetaryFreedom", "TradeFreedom", 
+                       "InvestmentFreedom", "FinancialFreedom", "TariffRate", "IncomeTaxRate", "CorporateTaxRate", 
+                       "TaxBurdenRateOfGDP", "GovExpenditureRateOfGDP", "PopulationMillions", 
+                       "GDPBillionsPPP", "GDPGrowthRate", "5YearGDPGrowthRate", "GDPperCapitaPPP", "UnemploymentRate", 
+                       "InflationRate", "FDIInflowMillions", "PublicDebtRateOfGDP")
+colnames(df_2019) <- c("CountryID", "CountryName", "Region", "WorldRank", "RegionRank", "Score", 
+                       "PropertyRights", "JudicialEffectiveness", "GovernmentIntegrity", "TaxBurden", "GovSpending", 
+                       "FiscalHealth", "BusinessFreedom", "LaborFreedom", "MonetaryFreedom", "TradeFreedom", 
+                       "InvestmentFreedom", "FinancialFreedom", "TariffRate", "IncomeTaxRate", "CorporateTaxRate", 
+                       "TaxBurdenRateOfGDP", "GovExpenditureRateOfGDP", "PopulationMillions", 
+                       "GDPBillionsPPP", "GDPGrowthRate", "5YearGDPGrowthRate", "GDPperCapitaPPP", "UnemploymentRate", 
+                       "InflationRate", "FDIInflowMillions", "PublicDebtRateOfGDP")
+colnames(df_2020) <- c("CountryID", "CountryName", "Region", "WorldRank", "RegionRank", "Score", 
+                       "PropertyRights", "JudicialEffectiveness", "GovernmentIntegrity", "TaxBurden", "GovSpending", 
+                       "FiscalHealth", "BusinessFreedom", "LaborFreedom", "MonetaryFreedom", "TradeFreedom", 
+                       "InvestmentFreedom", "FinancialFreedom", "TariffRate", "IncomeTaxRate", "CorporateTaxRate", 
+                       "TaxBurdenRateOfGDP", "GovExpenditureRateOfGDP", "PopulationMillions", 
+                       "GDPBillionsPPP", "GDPGrowthRate", "5YearGDPGrowthRate", "GDPperCapitaPPP", "UnemploymentRate", 
+                       "InflationRate", "FDIInflowMillions", "PublicDebtRateOfGDP")
 colnames(df_2021) <- c("CountryID", "CountryName", "Region", "WorldRank", "RegionRank", "Score", 
                   "PropertyRights", "JudicialEffectiveness", "GovernmentIntegrity", "TaxBurden", "GovSpending", 
                   "FiscalHealth", "BusinessFreedom", "LaborFreedom", "MonetaryFreedom", "TradeFreedom", 
@@ -37,28 +77,50 @@ colnames(df_2022) <- c("CountryID", "CountryName", "Region", "WorldRank", "Regio
                        "GDPBillionsPPP", "GDPGrowthRate", "5YearGDPGrowthRate", "GDPperCapitaPPP", "UnemploymentRate", 
                        "InflationRate", "FDIInflowMillions", "PublicDebtRateOfGDP")
 
+
+print(str(df_2017))
+print(str(df_2018))
+print(str(df_2019))
+print(str(df_2020))
 print(str(df_2021))
 print(str(df_2022))
 
+colnames(df_2017)
+colnames(df_2018)
+colnames(df_2019)
+colnames(df_2020)
 colnames(df_2021)
 colnames(df_2022)
 
 ######################## clearn ######################## 
 
 ### change to numeric
-
+df_2017[, -c(2,3)] <- sapply(df_2017[, -c(2,3)], as.numeric)
+print(str(df_2017))
+df_2018[, -c(2,3)] <- sapply(df_2018[, -c(2,3)], as.numeric)
+print(str(df_2018))
+df_2019[, -c(2,3)] <- sapply(df_2019[, -c(2,3)], as.numeric)
+print(str(df_2019))
+df_2020[, -c(2,3)] <- sapply(df_2020[, -c(2,3)], as.numeric)
+print(str(df_2020))
 df_2021[, -c(2,3)] <- sapply(df_2021[, -c(2,3)], as.numeric)
 print(str(df_2021))
 df_2022[, -c(2,3)] <- sapply(df_2022[, -c(2,3)], as.numeric)
 print(str(df_2022))
 
+
+
 ######################## merge ######################## 
 
+df_2017$year <- 2017
+df_2018$year <- 2018
+df_2019$year <- 2019
+df_2020$year <- 2020
 df_2021$year <- 2021
 df_2022$year <- 2022
 
 # Stack the data frames on top of each other
-merged_df <- rbind(df_2021, df_2022)
+merged_df <- rbind(df_2017, df_2018, df_2019, df_2020, df_2021, df_2022)
 
 # Sort by CountryName
 merged_df <- merged_df[order(merged_df$CountryName), ]
@@ -96,6 +158,10 @@ RANKS_AND_RATE <- c('PropertyRights', 'GovernmentIntegrity', 'TaxBurden',
 ### drop na
 
 merged_df <- drop_na(merged_df)
+print(is.na(merged_df))
+
+write.csv(merged_df, "D:/Personal project/IMDB/econometrics/index_merged_data.csv", row.names=FALSE)
+
 
 ######################## box plot ######################## 
 
@@ -197,9 +263,9 @@ correlationMatrix(merged_df[, c(RANKS_AND_RATE_original, "GDPGrowthRate")])
 
 ######################## linear regression ######################## 
 
-Y <- sqrt(merged_df[["GDPGrowthRate"]])
+Y <- merged_df[["GDPGrowthRate"]]
 # Y <- merged_df[["GDPGrowthRate"]]
-names(Y) <- "sqrt of GDPGrowthRate"
+names(Y) <- "GDPGrowthRate"
 
 merged_df$Intercept <- 1
 
@@ -213,60 +279,165 @@ full_model <- lm(formula, data = merged_df)
 step_model <- step(full_model, direction = "both")
 summary(step_model)
 
-######################## spurious regression w/ time series ######################## 
 
-install.packages('zoo')
-library(zoo)
-
-
-merged_df <- merged_df[complete.cases(merged_df), ]
-Y <- sqrt(merged_df[["GDPGrowthRate"]])
+######################## fixed effects model ######################## 
+library(plm)
+Y <- merged_df[["GDPGrowthRate"]]
 # Y <- merged_df[["GDPGrowthRate"]]
 names(Y) <- "sqrt of GDPGrowthRate"
-ts <- ts(Y, start = c(2021, 1), end = c(2022, 368), frequency = 1)
-# ts <- ts(cbind(Y, InflationRate, UnemploymentRate), start = c(2021, 1), end = c(2022, 368), frequency = 1)
+
+merged_df$Intercept <- 1
+
+formula <- as.formula(paste("Y ~", paste(c("Intercept", RANKS_AND_RATE_original), collapse = " + "), "+ factor(CountryName) - 1"))
+
+# Run a fixed effects regression with country fixed effects
+# model_fixed <- lm(formula, data = merged_df)
+# model_fixed <- plm(formula + factor(CountryName), data = merged_df)
 
 
-merged_df$InflationRate[is.na(merged_df$InflationRate)] <- mean(merged_df$InflationRate, na.rm = TRUE)
-
-# Impute missing values using linear interpolation
-merged_df$InflationRate <- na.approx(merged_df$InflationRate)
-
-model <- lm(ts ~ InflationRate + UnemploymentRate, data = merged_df)
+# Run a fixed effects regression with multiple independent variables using plm()
+model <- plm(formula, data = merged_df, index = c("CountryName", "year"), model = "within")
 summary(model)
 
+'
+The result shows that you have fitted a fixed effects regression model with 17 independent variables and one dependent variable (Y) using plm() in R. 
+You have used the within estimator, which means that you have removed the individual-specific effects (CountryName) by subtracting the group-level average over time. 
+This way, you can control for the unobserved heterogeneity that is constant over time and may be correlated with the independent variables. 
+A fixed effects model makes sense here better than a normal linear regression model because you have panel data, 
+which means that you have repeated observations for the same subjects (countries) over time. 
+A normal linear regression model would not account for the individual-specific effects and may produce biased estimates due to omitted variable bias12
 
-merged_df <- merged_df[1:length(ts), ]
+The result also shows the estimated coefficients, standard errors, t-values, and p-values for each independent variable. 
+You can use these to test your hypotheses and interpret the effects of each variable on Y. 
+For example, you can see that FinancialFreedom has a negative and significant effect on Y at 5% level, 
+which means that higher financial freedom is associated with lower Y, holding other variables constant. 
+You can also see the R-squared and adjusted R-squared values, which measure how well the model fits the data. 
+The R-squared value is 0.047345, which means that the model explains about 4.7% of the variation in Y. 
+The adjusted R-squared value is -0.25382, which means that the model performs worse than a simple mean model 
+after adjusting for the number of variables. You can also see the F-statistic and its p-value, 
+which test whether the model is overall significant or not. The F-statistic is 1.8125 and its p-value is 0.023389, 
+which means that you can reject the null hypothesis that all the coefficients are zero at 5% level.
+'
 
-length(merged_df$InflationRate)
-length(merged_df$UnemploymentRate)
-length(ts)
-
-
-
-sum(is.na(merged_df$InflationRate))
-sum(is.na(merged_df$UnemploymentRate))
-sum(is.na(ts))
-
-
-time_series <- (Y, RANKS_AND_RATE_original)
-
-for (var in time_series) {
-  
-  # Create a time series object with the variable
-  ts <- ts(df[[var]], start = c(2021, 1), end = c(2022, 368), frequency = 1)
-  assign(var, ts) }
-
-
-# model <- lm(ts ~ PopulationMillions + InflationRate + UnemploymentRate, data = df)
-formula <- as.formula(paste("ts ~", paste(c("Intercept", RANKS_AND_RATE_original), collapse = " + "), "- 1"))
-
-full_model <- lm(formula, data = merged_df)
-summary(full_model)
-
-# Perform stepwise selection
-step_model <- step(full_model, direction = "both")
-summary(step_model)
+# ######################## spurious regression w/ time series ######################## 
+# 
+# RANKS_AND_RATE_original <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
+#                              'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
+#                              'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
+#                              'InvestmentFreedom', 'FinancialFreedom', 'TariffRate', 
+#                              'IncomeTaxRate', 'CorporateTaxRate',  'UnemploymentRate', 'InflationRate')
+# 
+# library(zoo)
+# # merged_df <- merged_df[1:length(ts), ]
+# 
+# 
+# # merged_df <- merged_df[complete.cases(merged_df), ]
+# Y <- merged_df[["GDPGrowthRate"]]
+# # Y <- merged_df[["GDPGrowthRate"]]
+# names(Y) <- "GDPGrowthRate"
+# ts <- ts(Y, start = c(2017, 1), end = c(2022, 368), frequency = 1)
+# # ts <- ts(cbind(Y, InflationRate, UnemploymentRate), start = c(2021, 1), end = c(2022, 368), frequency = 1)
+# 
+# 
+# merged_df$InflationRate[is.na(merged_df$InflationRate)] <- mean(merged_df$InflationRate, na.rm = TRUE)
+# 
+# # Impute missing values using linear interpolation
+# merged_df$InflationRate <- na.approx(merged_df$InflationRate)
+# 
+# model <- lm(ts ~ InflationRate + UnemploymentRate, data = merged_df)
+# summary(model)
+# 
+# 
+# 
+# sum(is.na(merged_df$GDPGrowthRate))
+# 
+# print(str(merged_df$year))
+# Y <- merged_df[c("year", "GDPGrowthRate")]
+# # summary(merged_df[["GDPGrowthRate"]])
+# 
+# 
+# # Y <- merged_df[["GDPGrowthRate"]]
+# # names(Y) <- "GDPGrowthRate"
+# Y <- merged_df[c("year", "GDPGrowthRate")]
+# RANKS_AND_RATE_original <- merged_df[c("year", 'PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
+#                                        'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
+#                                        'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
+#                                        'InvestmentFreedom', 'FinancialFreedom', 'TariffRate', 
+#                                        'IncomeTaxRate', 'CorporateTaxRate',  'UnemploymentRate', 'InflationRate')]
+# time_series <- merge(Y, RANKS_AND_RATE_original, by = "year")
+# ts <- ts(time_series, start = c(2017, 1), end = c(2022, 1024), frequency = 1)
+# 
+# model <- lm(GDPGrowthRate ~ ., data = ts) 
+# summary(model)
+# 
+# 
+# 
+# for (var in time_series) {
+# 
+#   # Create a time series object with the variable
+#   ts <- ts(df[[var]], start = c(2021, 1), end = c(2022, 368), frequency = 1)
+#   assign(var, ts) }
+# 
+# sapply(merged_df[RANKS_AND_RATE_original], length)
+# # merged_df[RANKS_AND_RATE_original] <- na.omit(merged_df[RANKS_AND_RATE_original])
+# 
+# 
+# length(merged_df)
+# length(merged_df$UnemploymentRate)
+# length(ts)
+# 
+# 
+# sum(is.na(merged_df$InflationRate))
+# sum(is.na(merged_df$UnemploymentRate))
+# sum(is.na(ts))
+# 
+# formula <- as.formula(paste("ts ~", paste(c("Intercept", RANKS_AND_RATE_original), collapse = " + "), "- 1"))
+# 
+# full_model <- lm(formula, data = merged_df)
+# summary(full_model)
+# 
+# ######################## multicollinear ######################## 
+# install.packages("car")
+# library(car)
+# 
+# Y <- merged_df[c("year", "GDPGrowthRate")]
+# RANKS_AND_RATE_original <- merged_df[c("year", 'PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
+#                                        'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
+#                                        'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
+#                                        'InvestmentFreedom', 'FinancialFreedom', 'TariffRate', 
+#                                        'IncomeTaxRate', 'CorporateTaxRate',  'UnemploymentRate', 'InflationRate')]
+# 
+# # fit linear model
+# model <- lm(GDPGrowthRate ~ ., data = ts)
+# 
+# # check model summary to see which predictor variables have been dropped
+# summary(model)
+# 
+# # remove dropped predictor variables from data frame
+# ts_no_alias <- ts[, !names(coef(model))[is.na(coef(model))]]
+# 
+# # calculate VIF for each predictor variable
+# vif_values <- vif(lm(GDPGrowthRate ~ ., data = ts_no_alias))
+# 
+# # remove highly correlated variables (VIF > 5)
+# ts_no_multicollinearity <- ts_no_alias[, !names(vif_values[vif_values > 5])]
+# 
+# # fit linear model using remaining predictor variables
+# model_no_multicollinearity <- lm(GDPGrowthRate ~ ., data = ts_no_multicollinearity)
+# summary(model_no_multicollinearity)
+# ###########
+# time_series <- merge(Y, RANKS_AND_RATE_original, by = "year")
+# ts <- ts(time_series, start = c(2017, 1), end = c(2022, 1024), frequency = 1)
+# 
+# # calculate VIF for each predictor variable
+# vif_values <- vif(lm(GDPGrowthRate ~ ., data = ts))
+# 
+# # remove highly correlated variables (VIF > 5)
+# ts_no_multicollinearity <- ts[, !names(vif_values[vif_values > 5])]
+# 
+# # fit linear model using remaining predictor variables
+# model_no_multicollinearity <- lm(GDPGrowthRate ~ ., data = ts_no_multicollinearity)
+# summary(model_no_multicollinearity)
 
 ######################## linear regression w/ cross validation ######################## 
 
@@ -320,14 +491,13 @@ mean(cv_errors)
 ######################## based on region ########################
 
 
-Y <- sqrt(merged_df[["GDPGrowthRate"]])
 Y <- merged_df[["GDPGrowthRate"]]
-names(Y) <- "sqrt of GDPGrowthRate"
+names(Y) <- "GDPGrowthRate"
 
 merged_df$Y <- Y
 
 # define the model formula
-formula <- as.formula(paste("Y ~", paste(c("Intercept", RANKS_AND_RATE_original), collapse = " + ")))
+formula <- as.formula(paste("Y ~", paste(RANKS_AND_RATE_original, collapse = " + ")))
 
 # get the unique regions
 regions <- unique(merged_df$Region)
@@ -337,12 +507,6 @@ for (region in regions) {
   # subset the data for the current region
   region_data <- merged_df[merged_df$Region == region, ]
   
-  # print the length of each variable in the region_data data frame
-  # cat("Region:", region, "\n")
-  # for (var in all.vars(formula)) {
-  #   cat(var, ":", length(region_data[[var]]), "\n")
-  # }
-  
   # fit the linear model to the subsetted data
   model <- lm(formula, data = region_data)
   step_model <- step(model, direction = "both", trace = FALSE)
@@ -351,6 +515,12 @@ for (region in regions) {
   cat("\nRegion:", region, "\n")
   print(summary(step_model))
 }
+  # print the length of each variable in the region_data data frame
+  # cat("Region:", region, "\n")
+  # for (var in all.vars(formula)) {
+  #   cat(var, ":", length(region_data[[var]]), "\n")
+  # }
+
 
 ######################## chi-squared ######################## 
 
