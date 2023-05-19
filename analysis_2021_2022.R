@@ -261,7 +261,7 @@ correlationMatrix <- function(merged_df) {
 correlationMatrix(merged_df[, c(RANKS_AND_RATE_original, "GDPGrowthRate")])
 
 
-######################## linear regression ######################## 
+######################## linear regression w/ stepwise selection ######################## 
 
 Y <- merged_df[["GDPGrowthRate"]]
 # Y <- merged_df[["GDPGrowthRate"]]
