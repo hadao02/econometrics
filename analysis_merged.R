@@ -17,7 +17,6 @@ library(tseries)
 library(plm)
 library(lmtest)
 
-
 df <- read.csv("D:/Personal project/IMDB/econometrics/index_merged_data.csv")
 print(str(df))
 
@@ -30,7 +29,6 @@ RANKS <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'Ta
            'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
            'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
            'InvestmentFreedom', 'FinancialFreedom')
-
 
 classifier <- function(item) {
   if (is.na(item) || !is.numeric(item)) {
@@ -141,16 +139,15 @@ correlationMatrix(df[, c(RANKS_AND_RATE_original, "GDPGrowthRate")])
 
 ######################## check correlation ######################## 
 
-
 Independent_Variables <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
-                             'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
-                             'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
-                             'InvestmentFreedom', 'FinancialFreedom', 'TariffRate', 
-                             'IncomeTaxRate', 'CorporateTaxRate',  'UnemploymentRate', 'InflationRate')
+                           'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
+                           'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
+                           'InvestmentFreedom', 'FinancialFreedom', 'TariffRate', 
+                           'IncomeTaxRate', 'CorporateTaxRate',  'UnemploymentRate', 'InflationRate')
 
 ######################## chi-squared ######################## 
 
-tbl <- table(merged_df$Region)
+tbl <- table(df$Region)
 
 # Perform the chi-squared test
 chisq.test(tbl)
@@ -160,7 +157,7 @@ chisq.test(tbl)
 model_formula <- Y ~ Region
 
 # Fit the model
-model <- lm(model_formula, data = merged_df)
+model <- lm(model_formula, data = df)
 
 # View the model summary
 summary(model)
@@ -172,9 +169,9 @@ names(Y) <- "GDPGrowthRate"
 
 df$Intercept <- 1
 
-formula <- as.formula(paste("Y ~", paste(c("Intercept", Independent_Variables), collapse = " + "), "- 1"))
+formula_step <- as.formula(paste("Y ~", paste(c("Intercept", Independent_Variables), collapse = " + "), "- 1"))
 
-full_model <- lm(formula, data = df)
+full_model <- lm(formula_step, data = df)
 
 # Perform stepwise selection
 step_model <- step(full_model, direction = "both")
@@ -201,7 +198,15 @@ summary(spu_model)
 Y <- df[["GDPGrowthRate"]]
 names(Y) <- "GDPGrowthRate"
 
-formula <- as.formula(paste("Y ~", paste(c("Intercept", Independent_Variables), collapse = " + "), "+ factor(CountryName) - 1"))
+reg = lm(Y ~ UnemploymentRate, data=df)
+summary(reg)
+
+# dummy variable
+dummyvar = lm(Y ~ UnemploymentRate + factor(year) + factor(CountryID), data=df)
+summary(dummyvar)
+
+
+formula_fix <- as.formula(paste("Y ~ factor(Region) +", paste(c("Intercept", Independent_Variables), collapse = " + "), "+ factor(CountryName) - 1"))
 
 # using index = c("CountryName", "year") 
 # and model = "within" in the plm function is a reasonable way to specify 
@@ -210,24 +215,34 @@ formula <- as.formula(paste("Y ~", paste(c("Intercept", Independent_Variables), 
 # across countries.
 
 # Run a fixed effects regression with multiple independent variables using plm()
-model <- plm(formula, data = df, index = c("CountryName", "year"), model = "within")
-summary(model)
+model_fix <- plm(formula_fix, data = df, index = c("CountryName"), model = "within")
+summary(model_fix)
+
+
+Independent_Variables <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
+                           'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
+                           'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
+                           'InvestmentFreedom', 'FinancialFreedom', 'TariffRate', 
+                           'IncomeTaxRate', 'CorporateTaxRate',  'UnemploymentRate', 'InflationRate')
+
+
+
 
 # Perform Breusch-Godfrey test for serial correlation
-pbgtest(model)
+pbgtest(model_fix)
 # >> p-value of 0.09518, indicating that there is no evidence of serial correlation in the errors
 
 # Perform Pesaran's test for cross-sectional dependence
-pcdtest(model)
+pcdtest(model_fix)
 # >> a very low p-value (< 2.2e-16), indicating that there is strong evidence of cross-sectional dependence in the data
 
 # Perform Breusch-Pagan test for heteroskedasticity
-bptest(model)
+bptest(model_fix)
 # >> a very low p-value (1.251e-05), indicating that there is strong evidence of heteroskedasticity in the errors
 # variance of the errors is not constant across observations
 
 # Compute panel-corrected standard errors
-coeftest(model, vcov = function(x) vcovHC(x, method = "arellano", type = "HC1", cluster = "group"))
+coeftest(model_fix, vcov = function(x) vcovHC(x, method = "arellano", type = "HC1", cluster = "group"))
 
 significant_va <- c("JudicialEffectiveness", "GovernmentIntegrity", "FiscalHealth", "BusinessFreedom", 
                     "LaborFreedom", "MonetaryFreedom", "TradeFreedom", "TariffRate", "InflationRate")
@@ -250,6 +265,11 @@ summary(coef_model)
 
 ######################## based on region ########################
 
+F <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
+       'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
+       'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
+       'InvestmentFreedom', 'FinancialFreedom', 'TariffRate', 'IncomeTaxRate', 'CorporateTaxRate',
+       'TaxBurdenRateOfGDP', 'GovExpenditureRateOfGDP', 'UnemploymentRate', 'InflationRate')
 df$Y <- Y
 
 # define the model formula
@@ -271,8 +291,4 @@ for (region in regions) {
   cat("\nRegion:", region, "\n")
   print(summary(step_model))
 }
-
-
-
-
 
