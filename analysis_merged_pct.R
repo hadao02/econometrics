@@ -17,21 +17,33 @@ library(tseries)
 library(plm)
 library(lmtest)
 
-df <- read.csv("D:/Personal project/IMDB/econometrics/index_merged_data.csv")
+
+df <- read.csv("D:/Personal project/IMDB/econometrics/pct_change.csv")
 print(str(df))
+df <- df[complete.cases(df), ]
 
-if (!is.numeric(df$GDPGrowthRate)) {
-  df$GDPGrowthRate <- as.numeric(df$GDPGrowthRate)
-}
+# Remove rows with infinite values
+df_numeric <- df[sapply(df, is.numeric)]
 
-df$Region[df$Region == "Middle East / North Africa"] <- "Middle East and North Africa"
+# Check for rows with infinite values
+df_numeric[apply(df_numeric, 1, function(x) any(is.infinite(x))), ]
+df <- drop_na(df)
+print(is.na(df))
+print(str(df))
+df[is.na(df)]
+df[is.infinite(df)]
+sapply(df, var) == 0
+mat <- as.matrix(df)
 
+# Check for infinite values
+mat[is.infinite(mat)]
 
 ######################## box plot ######################## 
 RANKS <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
            'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
            'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
            'InvestmentFreedom', 'FinancialFreedom')
+
 
 classifier <- function(item) {
   if (is.na(item) || !is.numeric(item)) {
@@ -53,7 +65,6 @@ classifier <- function(item) {
 boxPlots <- function(df) {
   boxplot(df, col = sapply(apply(df, 2, median), classifier), main = "World Scores by Category", xlab = "", ylab = "Score", las = 2)
 }
-par(mar=c(9, 4, 4,1))
 
 # calls function
 boxPlots(df[RANKS])
@@ -62,7 +73,8 @@ boxPlots(df[RANKS])
 ######################## box plot ######################## 
 
 PERCENTAGE_STATS <- c('TariffRate', 'IncomeTaxRate', 'CorporateTaxRate',
-                      'TaxBurdenRateOfGDP', 'GovExpenditureRateOfGDP', 'GDPGrowthRate', 'UnemploymentRate', 'InflationRate')
+                      'TaxBurdenRateOfGDP', 'GovExpenditureRateOfGDP', 
+                      'GDPGrowthRate', 'UnemploymentRate', 'InflationRate', 'PublicDebtRateOfGDP', 'FDIInflowMillions')
 
 
 classifier <- function(item) {
@@ -83,7 +95,7 @@ classifier <- function(item) {
 
 # function for making boxplots
 boxPlots <- function(df) {
-  boxplot(df, col = sapply(apply(df, 2, median), classifier), main = "World Scores by Category", xlab = "", ylab = "Score", las = 2, ylim=c(-30,110))
+  boxplot(df, col = sapply(apply(df, 2, median), classifier), main = "World Scores by Category", xlab = "", ylab = "Score", las = 2, ylim=c(-30,20))
 }
 
 par(mar=c(13, 4, 4, 2))
@@ -107,7 +119,7 @@ scatterPlot <- function(X, Y, predictions=NULL) {
   print(p)
 }
 
-X_total <- df[["TaxBurden"]]
+X_total <- df[["FiscalHealth"]]
 Y <- df[["GDPGrowthRate"]]
 
 scatterPlot(X_total, Y)
@@ -117,11 +129,7 @@ scatterPlot(X_total, Y)
 library(GGally)
 library(reshape2)
 
-RANKS_AND_RATE_original <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
-                             'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
-                             'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
-                             'InvestmentFreedom', 'FinancialFreedom', 'TariffRate', 
-                             'IncomeTaxRate', 'CorporateTaxRate',  'UnemploymentRate', 'InflationRate')
+RANKS_AND_RATE_original <- c(PERCENTAGE_STATS, RANKS)
 
 correlationMatrix <- function(merged_df) {
   # Compute correlation matrix
@@ -149,6 +157,12 @@ Independent_Variables <- c('PropertyRights', 'JudicialEffectiveness', 'Governmen
                            'InvestmentFreedom', 'FinancialFreedom', 'TariffRate', 
                            'IncomeTaxRate', 'CorporateTaxRate',  'UnemploymentRate', 'InflationRate')
 
+Independent_Variables <- c(PERCENTAGE_STATS, RANKS)
+
+correlation <- cor(df$GDPGrowthRate, select(df, -c(GDPGrowthRate, Year, CountryName, Region)))
+
+print(correlation)
+
 ######################## chi-squared ######################## 
 
 tbl <- table(df$Region)
@@ -168,21 +182,26 @@ summary(model)
 
 ######################## step model ######################## 
 
+Independent_Variables1 <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
+                           'BusinessFreedom', 
+                           'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom',
+                           'IncomeTaxRate', 'CorporateTaxRate',  'UnemploymentRate')
+
 Y <- df[["GDPGrowthRate"]]
 names(Y) <- "GDPGrowthRate"
 
 df$Intercept <- 1
 
-formula_step <- as.formula(paste("Y ~", paste(c("Intercept", Independent_Variables), collapse = " + "), "- 1"))
+formula <- as.formula(paste("Y ~", paste(c("Intercept", Independent_Variables1), collapse = " + "), "- 1"))
 
-full_model <- lm(formula_step, data = df)
+full_model <- lm(formula, data = df)
 
 # Perform stepwise selection
 step_model <- step(full_model, direction = "both")
 summary(step_model)
 
 ######################## spurious regression ######################## 
-# stochastic trend 
+
 # Select independent variables
 independent_variables <- select(df, -c(Score, RegionRank, WorldRank, GDPGrowthRate, year, CountryName, Region, CountryID, X5YearGDPGrowthRate))
 
@@ -198,23 +217,11 @@ spu_model <- lm(GDPGrowthRate ~ ., data = df[,c("GDPGrowthRate", best_variables)
 summary(spu_model)
 
 ######################## fixed effects model ######################## 
-# df$Region <- as.factor(df$Region)
-# dummy_region <- model.matrix(~ Region - 1, data = df)
-# colnames(dummy_region) <- levels(df$Region)
-# df <- cbind(df, dummy_region)
 
 Y <- df[["GDPGrowthRate"]]
 names(Y) <- "GDPGrowthRate"
 
-reg = lm(Y ~ UnemploymentRate, data=df)
-summary(reg)
-
-# dummy variable
-dummyvar = lm(Y ~ UnemploymentRate + factor(year) + factor(CountryID), data=df)
-summary(dummyvar)
-
-
-formula_fix <- as.formula(paste("Y ~ factor(Region) + factor(year) +", paste(c("Intercept", Independent_Variables), collapse = " + "), "+ factor(CountryName) - 1"))
+formula <- as.formula(paste("Y ~", paste(c("Intercept", Independent_Variables), collapse = " + "), "+ factor(CountryName) - 1"))
 
 # using index = c("CountryName", "year") 
 # and model = "within" in the plm function is a reasonable way to specify 
@@ -223,33 +230,24 @@ formula_fix <- as.formula(paste("Y ~ factor(Region) + factor(year) +", paste(c("
 # across countries.
 
 # Run a fixed effects regression with multiple independent variables using plm()
-model_fix <- plm(formula_fix, data = df, index = c("CountryName"), model = "within")
-summary(model_fix)
-
-
-Independent_Variables <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
-                           'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
-                           'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
-                           'InvestmentFreedom', 'FinancialFreedom', 'TariffRate', 
-                           'IncomeTaxRate', 'CorporateTaxRate',  'UnemploymentRate', 'InflationRate')
-
-
+model <- plm(formula, data = df, index = c("CountryName", "year"), model = "within")
+summary(model)
 
 # Perform Breusch-Godfrey test for serial correlation
-pbgtest(model_fix)
+pbgtest(model)
 # >> p-value of 0.09518, indicating that there is no evidence of serial correlation in the errors
 
 # Perform Pesaran's test for cross-sectional dependence
-pcdtest(model_fix)
+pcdtest(model)
 # >> a very low p-value (< 2.2e-16), indicating that there is strong evidence of cross-sectional dependence in the data
 
 # Perform Breusch-Pagan test for heteroskedasticity
-bptest(model_fix)
+bptest(model)
 # >> a very low p-value (1.251e-05), indicating that there is strong evidence of heteroskedasticity in the errors
 # variance of the errors is not constant across observations
 
 # Compute panel-corrected standard errors
-coeftest(model_fix, vcov = function(x) vcovHC(x, method = "arellano", type = "HC1", cluster = "group"))
+coeftest(model, vcov = function(x) vcovHC(x, method = "arellano", type = "HC1", cluster = "group"))
 
 significant_va <- c("JudicialEffectiveness", "GovernmentIntegrity", "FiscalHealth", "BusinessFreedom", 
                     "LaborFreedom", "MonetaryFreedom", "TradeFreedom", "TariffRate", "InflationRate")
@@ -272,11 +270,6 @@ summary(coef_model)
 
 ######################## based on region ########################
 
-F <- c('PropertyRights', 'JudicialEffectiveness', 'GovernmentIntegrity', 'TaxBurden', 
-       'GovSpending', 'FiscalHealth', 'BusinessFreedom', 
-       'LaborFreedom', 'MonetaryFreedom', 'TradeFreedom', 
-       'InvestmentFreedom', 'FinancialFreedom', 'TariffRate', 'IncomeTaxRate', 'CorporateTaxRate',
-       'TaxBurdenRateOfGDP', 'GovExpenditureRateOfGDP', 'UnemploymentRate', 'InflationRate')
 df$Y <- Y
 
 # define the model formula
@@ -298,4 +291,8 @@ for (region in regions) {
   cat("\nRegion:", region, "\n")
   print(summary(step_model))
 }
+
+
+
+
 
